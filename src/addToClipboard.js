@@ -1,4 +1,4 @@
-(async () => {
+javascript: (async () => {
   window.focus();
   await navigator.clipboard
     .readText()
