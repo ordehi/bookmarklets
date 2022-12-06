@@ -1,5 +1,6 @@
 // TODO: nice animations?
 // TODO: refactor the mess
+// TODO: fix style pollution by encapsulating UI
 
 // This bookmarklet creates a UI that displays elements you clicked along with their CSS selectors
 // It is useful when you want to get selectors for elements to use in other bookmarklets
