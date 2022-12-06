@@ -1,7 +1,8 @@
-// TODO: capture node before event handlers are executed
 // TODO: nice animations?
 // TODO: refactor the mess
 
+// This bookmarklet creates a UI that displays elements you clicked along with their CSS selectors
+// It is useful when you want to get selectors for elements to use in other bookmarklets
 (function () {
   const styles = {
     uiStyle: `position: fixed;top: 0;left: 0;width: 30%;height: 600px;background-color: rgba(0,0,0,0.8);z-index: 999999;border: 1px solid black;padding: 1rem;overflow-y: scroll;color: white;resize: both;`,
@@ -9,8 +10,8 @@
     labelSpan: `font-size:1.2rem;font-weight:bold;display:block;`,
     listStyles: `list-style:none;padding:0;width:100%;`,
     item: `margin-block:1rem;`,
-    containerStyle: `border:1px solid white;padding:0.5rem;max-height:600px;`,
-    elementStyle: `overflow: hidden;max-width: 150px;max-height: 500px;`,
+    containerStyle: `margin-top:1rem;border:1px solid white;padding:0.5rem;max-height:100%;`,
+    elementStyle: `overflow: hidden;display: flex;justify-content: center;max-height: 300px;`,
     copyButton: `cursor:pointer;border:none;border-radius:4px;background-color:white;color:black;margin-left:0.5rem;`,
     selectorSpan: `display:inline-block;margin-top:0.5rem;`,
   };
@@ -81,11 +82,12 @@
   function createSelectedElement({ node, selectors }) {
     const container = document.createElement('div');
     const element = document.createElement('div');
+    const hr = document.createElement('hr');
     container.style = styles.containerStyle;
     element.style = styles.elementStyle;
     element.appendChild(node.cloneNode(true));
     const selectorList = createSelectorList(selectors);
-    container.append(element, selectorList);
+    container.append(element, hr, selectorList);
     return container;
   }
 
