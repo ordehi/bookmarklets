@@ -3,21 +3,32 @@
 // TODO: refactor the mess
 
 (function () {
+  const styles = {
+    uiStyle: `position: fixed;top: 0;left: 0;width: 30%;height: 600px;background-color: rgba(0,0,0,0.8);z-index: 999999;border: 1px solid black;padding: 1rem;overflow-y: scroll;color: white;resize: both;`,
+    uiSelectors: `display:flex;flex-direction:column;`,
+    labelSpan: `font-size:1.2rem;font-weight:bold;display:block;`,
+    listStyles: `list-style:none;padding:0;width:100%;`,
+    item: `margin-block:1rem;`,
+    containerStyle: `border:1px solid white;padding:0.5rem;max-height:600px;`,
+    elementStyle: `overflow: hidden;max-width: 150px;max-height: 500px;`,
+    copyButton: `cursor:pointer;border:none;border-radius:4px;background-color:white;color:black;margin-left:0.5rem;`,
+    selectorSpan: `display:inline-block;margin-top:0.5rem;`,
+  };
+
+  document.body.replaceWith(document.body.cloneNode(true));
   function createUI() {
-    const uiStyle = `position: fixed;top: 0;left: 0;width: 40%;height: 30%;background-color: rgba(0,0,0,0.8);z-index: 999999;border: 1px solid black;padding: 1rem;overflow-y: scroll;color: white;resize: both;`;
     const uiContainer = document.createElement('div');
-    uiContainer.id = 'find-selector-bookmarklet-ui';
-    uiContainer.style = uiStyle;
     const uiTitle = document.createElement('h3');
-    uiTitle.innerText = 'Selectores CSS';
-    uiContainer.appendChild(uiTitle);
     const uiSelectors = document.createElement('div');
-    uiSelectors.style.display = 'flex';
-    uiSelectors.style.flexDirection = 'column';
-    uiContainer.appendChild(uiSelectors);
     const uiBottom = document.createElement('div');
-    uiContainer.appendChild(uiBottom);
+
+    uiContainer.id = 'find-selector-bookmarklet-ui';
+    uiContainer.style = styles.uiStyle;
+    uiSelectors.style = styles.uiSelectors;
+    uiTitle.textContent = 'Selectores CSS';
+    uiContainer.append(uiTitle, uiSelectors, uiBottom);
     document.body.appendChild(uiContainer);
+
     return {
       uiContainer,
       uiSelectors,
@@ -27,23 +38,41 @@
 
   const ui = createUI();
 
+  async function copyToClipboard(text) {
+    if (text) {
+      window.focus();
+      await navigator.clipboard.writeText(text);
+    }
+  }
+
+  function copySelector(event) {
+    console.log(this);
+    const selector = event.target.parentElement.nextElementSibling.textContent;
+    copyToClipboard(selector);
+  }
+
   function createLabelSpan(text) {
     const span = document.createElement('span');
-    span.innerText = text;
-    span.style.fontWeight = 'bold';
-    span.style.display = 'block';
+    const button = document.createElement('button');
+    button.style = styles.copyButton;
+    button.textContent = 'copiar';
+    button.onclick = copySelector;
+    span.append(text, button);
+    span.style = styles.labelSpan;
     return span;
   }
 
   function createSelectorList(selectors) {
     const list = document.createElement('ul');
-    list.style.listStyle = 'none';
-    list.style.padding = '0';
+    list.style = styles.listStyles;
     Object.keys(selectors).forEach((selector) => {
       const label = createLabelSpan(selector);
       const item = document.createElement('li');
-      item.style.marginBottom = '0.5rem';
-      item.append(label, selectors[selector]);
+      const selectorSpan = document.createElement('span');
+      selectorSpan.textContent = selectors[selector];
+      item.style = styles.item;
+      selectorSpan.style = styles.selectorSpan;
+      item.append(label, selectorSpan);
       list.appendChild(item);
     });
     return list;
@@ -51,14 +80,12 @@
 
   function createSelectedElement({ node, selectors }) {
     const container = document.createElement('div');
-    container.style.border = '1px solid white';
-    container.style.padding = '0.5rem';
     const element = document.createElement('div');
-    element.style.maxWidth = '200px';
+    container.style = styles.containerStyle;
+    element.style = styles.elementStyle;
     element.appendChild(node.cloneNode(true));
-    container.appendChild(element);
     const selectorList = createSelectorList(selectors);
-    container.appendChild(selectorList);
+    container.append(element, selectorList);
     return container;
   }
 
@@ -92,66 +119,25 @@
       }
     }
     return {
-      pathSelector,
-      uniquePathSelector,
+      selectorAncestro: pathSelector,
+      selectorUnico: uniquePathSelector,
     };
   }
 
-  const lifecycleMessages = {
-    start: 'Haz click en el elemento que deseas seleccionar',
-    clearingClipboard:
-      'Limpiando el portapapeles. Los selectores se copiarán en el portapapeles con este formato: #id | .class | tag',
-    elementClicked: 'El selector del elemento es: ',
-    selectorCopied: 'El selector ha sido copiado al portapapeles',
-  };
-
-  function alertMessage(stage, message = '') {
-    alert(lifecycleMessages[stage] + message);
-  }
-
-  async function addToClipboard(text) {
-    window.focus();
-    if (text) {
-      await navigator.clipboard
-        .readText()
-        .then((clipBoard) => {
-          if (clipBoard.length > 0) {
-            clipBoard = clipBoard + ' | ';
-          }
-          navigator.clipboard.writeText(clipBoard + text).then(
-            (data) => {
-              console.log(text + ' agregado al portapapeles');
-            },
-            (error) => {
-              console.log(error);
-            }
-          );
-        })
-        .catch((error) => console.error(error));
-    }
-  }
-
-  async function clearClipboard() {
-    window.focus();
-    await navigator.clipboard.writeText('');
-  }
-
   function createSelectorForAnyElement() {
-    clearClipboard();
     let element = null;
-    document.addEventListener('click', (event) => {
+    document.body.addEventListener('click', (event) => {
       if (!event.target.closest('#find-selector-bookmarklet-ui')) {
         element = event.target;
         const selector = getSelectorWithTag(element);
         const pathSelectors = getPathSelector(event);
-        console.log(pathSelectors);
-        addToClipboard(selector);
+        const { selectorAncestro, selectorUnico } = pathSelectors;
         let selectedElement = createSelectedElement({
           node: element,
           selectors: {
             selector,
-            pathSelector: pathSelectors.pathSelector,
-            uniquePathSelector: pathSelectors.uniquePathSelector,
+            selectorAncestro,
+            selectorUnico,
           },
         });
         ui.uiSelectors.appendChild(selectedElement);
