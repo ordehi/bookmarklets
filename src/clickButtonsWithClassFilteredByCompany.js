@@ -1,4 +1,5 @@
-let selector = 'div.usuario.add_btn';
+let selector = 'div.usuario';
+let buttonSelector = '.add_btn';
 let targetCompanySelector = '.empresa';
 let includeText =
   prompt(
@@ -11,7 +12,7 @@ elements.forEach((element) => {
     targetCompany &&
     targetCompany.textContent.toLowerCase().includes(includeText.toLowerCase())
   ) {
-    const targetButton = element.querySelector(targetButtonSelector);
+    const targetButton = element.querySelector(buttonSelector);
     targetButton.click();
   }
 });
